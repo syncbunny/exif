@@ -2,7 +2,7 @@
 exif extractor command
 
 # usage
-exif <filepath>
+exif &lt;filepath&gt;
 
 # confirmed devices
 * Apple
