@@ -123,10 +123,6 @@ impl EXIF {
                 self.tag_rational(ifd_type, count, value, data, "FNumber");
             }
             0x8769 => {
-                //let data_slice = &data[value as usize..];
-                //dump(data_slice);
-//                let exif = EXIF::load(data_slice);
-                // TODO: ExifOffset
                 self.load_ifd(data, value as usize);
             }
             0x8822 => {
@@ -156,6 +152,9 @@ impl EXIF {
             0x9101 => {
                 // TODO: ComponentsConfiguration
                 // self.values.insert("ComponentsConfiguration".to_string(), format!("{:08X}", value));
+            }
+            0x9102 => {
+                self.tag_rational(ifd_type, count, value, data, "CompressedBitsPerPixel");
             }
             0x9201 => {
                 self.tag_srational(ifd_type, count, value, data, "ShutterSpeedValue");
@@ -215,6 +214,9 @@ impl EXIF {
             }
             0xA003 => {
                 self.values.insert("PixelYDimension".to_string(), value.to_string());
+            }
+            0xA005  => {
+                // TODO: InteroperabilityIFDPointer
             }
             0xA20E => {
                 self.tag_rational(ifd_type, count, value, data, "FocalPlaneXResolution");
