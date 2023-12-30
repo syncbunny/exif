@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use crate::logger;
 
 pub struct EXIF {
     byte_order: ENDIAN,
@@ -19,15 +20,15 @@ impl EXIF {
         // byte order
         exif.byte_order = match data[0] {
             0x49 => {
-                println!("Intel");
+                logger::debug("Intel");
                 ENDIAN::LITTLE_ENDIAN
             }
             0x4D => {
-                println!("Motorola");
+                logger::debug("Motorola");
                 ENDIAN::BIG_ENDIAN
             }
             _ => {
-                println!("unknown byte order");
+                logger::debug("unknown byte order");
                 return None;
             }
         };
@@ -290,18 +291,18 @@ impl EXIF {
                 self.tag_rational(ifd_type, count, value+40, data, "ReferenceBlackWhite5");
             }
             _ => {
-                println!("unknown tag");
-                println!("tag: {:04X}", tag);
-                println!("type: {:04X}", ifd_type);
-                println!("count: {}", count);
-                println!("value: {}", value);
+                logger::debug("unknown tag");
+                logger::debug(format!("tag: {:04X}", tag).as_str());
+                logger::debug(format!("type: {:04X}", ifd_type).as_str());
+                logger::debug(format!("count: {}", count).as_str());
+                logger::debug(format!("value: {}", value).as_str());
             }
         }
     }
 
     fn tag_string(&mut self, ifd_type: u16, count: u32, value: u32, data:&[u8], tag_name:&str) {
         if ifd_type != 2 {
-            println!("invalid type");
+            logger::debug("invalid type");
             return;
         }
         if count <= 4 {
@@ -314,7 +315,7 @@ impl EXIF {
 
     fn tag_rational(&mut self, ifd_type: u16, count: u32, value: u32, data:&[u8], tag_name:&str) {
         if ifd_type != 5 {
-            println!("invalid type");
+            logger::debug("invalid type");
             return;
         }
         let offset = value as usize;
@@ -325,7 +326,7 @@ impl EXIF {
 
     fn tag_srational(&mut self, ifd_type: u16, count: u32, value: u32, data:&[u8], tag_name:&str) {
         if ifd_type != 10 {
-            println!("invalid type");
+            logger::debug("invalid type");
             return;
         }
         let offset = value as usize;

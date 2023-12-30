@@ -2,6 +2,7 @@ use std::io;
 use std::io::prelude::*;
 use std::fs::File;
 use crate::exif::*;
+use crate::logger;
 
 pub struct JFIF {
 	pub version: u16,
@@ -81,7 +82,7 @@ impl JFIF {
 							state = JFIFState::JFIF;	
 						}
 						0xD9 => { // EOI
-							println!("ACCEPTED!");
+							logger::debug("ACCEPTED!");
 							state = JFIFState::ACCEPTED;
 						}
 						0xE0 => { // APP0
@@ -91,11 +92,11 @@ impl JFIF {
 							state = jfif.APP1(f, JFIFState::JFIF);
 						}
 						_ => {
-							println!("mark FF{:02X}", inbyte[0]);
+							logger::debug(format!("mark FF{:02X}", inbyte[0]).as_str());
 							if jfif.mark(f) {
 								state = JFIFState::JFIF;
 							} else {
-								println!("ERR");
+								logger::debug("ERR");
 								state = JFIFState::ERR;
 							}
 						}
@@ -127,7 +128,7 @@ impl JFIF {
 		} else {
 			return false;
 		}
-		println!("length: {}", len);
+		logger::debug(format!("length: {}", len).as_str());
 
 		// skip
 		for i in 0..len-2 {
@@ -141,7 +142,7 @@ impl JFIF {
 	}
 
 	fn APP0(&mut self, f: &mut File, ok_state: JFIFState) -> JFIFState {
-		println!("APP0");
+		logger::debug("APP0");
 
 		// Length
 		let mut len: u16 = 0;
@@ -150,7 +151,7 @@ impl JFIF {
 		} else {
 			return JFIFState::ERR;
 		}
-		println!("length: {}", len);
+		logger::debug(format!("length: {}", len).as_str());
 
 		// "JFIF\0"
 		let mut buff = [0; 5];
@@ -221,14 +222,14 @@ impl JFIF {
 	}
 
 	fn APP1(&mut self, f: &mut File, ok_state: JFIFState) -> JFIFState {
-		println!("APP1");
+		logger::debug("APP1");
 		let mut len: u16 = 0;
 		if let Some(l) = read_length(f) {
 			len = l;
 		} else {
 			return JFIFState::ERR;
 		}
-		println!("length: {}", len);
+		logger::debug(format!("length: {}", len).as_str());
 		
 		// EXIF check
 		let mut buff = [0; 6];
@@ -237,7 +238,7 @@ impl JFIF {
 			return JFIFState::ERR;
 		}
 		if buff[0] == 0x45 && buff[1] == 0x78 && buff[2] == 0x69 && buff[3] == 0x66 && buff[4] == 0x00 && buff[5] == 0x00 {
-			println!("EXIF");
+			logger::debug("EXIF");
 			let mut buff:Vec<u8> = Vec::with_capacity(len as usize -8);
 			unsafe {
 				buff.set_len(len as usize -8);
@@ -248,7 +249,7 @@ impl JFIF {
 			}
 			self.exif = EXIF::load(&mut buff.as_slice());
 		} else {
-			println!("not EXIF");
+			logger::debug("not EXIF");
 			if !skip(f, len-2-6) {
 				return JFIFState::ERR;
 			}
